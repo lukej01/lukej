@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Legend of Zelda: OoT</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #fff; color: #333; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px 20px; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .back-button { display: inline-block; padding: 10px 20px; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 6px; color: #0066cc; text-decoration: none; margin-bottom: 40px; cursor: pointer; font-weight: 600; }
+        .back-button:hover { border-color: #0066cc; background: #f0f7ff; }
+        .game-info { display: grid; grid-template-columns: 300px 1fr; gap: 50px; margin-bottom: 50px; align-items: start; }
+        .cover-section { display: flex; flex-direction: column; gap: 20px; }
+        .game-cover { width: 100%; aspect-ratio: 3/4; background: #f5f5f5; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+        .game-cover img { width: 100%; height: 100%; object-fit: cover; }
+        .play-button { width: 100%; padding: 14px 20px; background: #0066cc; border: none; border-radius: 6px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; }
+        .play-button:hover { background: #0052a3; }
+        .game-details h1 { font-size: 42px; margin-bottom: 8px; color: #1e40af; font-weight: 700; }
+        .game-system { font-size: 14px; color: #0066cc; margin-bottom: 24px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+        .game-description { line-height: 1.6; color: #555; margin-bottom: 32px; font-size: 16px; }
+        .controls-section { margin-top: 40px; }
+        .controls-section h2 { font-size: 18px; margin-bottom: 16px; color: #1e40af; font-weight: 600; }
+        .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .control-item { background: #f5f5f5; border: 1px solid #e0e0e0; padding: 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+        .control-label { font-weight: 600; color: #333; }
+        .control-key { background: #e8f1ff; padding: 4px 10px; border-radius: 4px; color: #0066cc; font-family: monospace; font-size: 13px; font-weight: 600; }
+        .game-container { margin-top: 50px; display: none; }
+        .game-container.active { display: block; }
+        #game { width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 8px; overflow: hidden; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-button">← Back</a>
+        <div class="game-info">
+            <div class="cover-section">
+                <div class="game-cover">
+                    <img id="coverImg" src="" alt="Game Cover" onerror="this.style.display='none'">
+                </div>
+                <button class="play-button" onclick="startGame()">Play Game</button>
+            </div>
+            <div class="game-details">
+                <h1 id="gameTitle">Legend of Zelda: OoT</h1>
+                <p class="game-system" id="gameSystem">N64</p>
+                <p class="game-description" id="gameDesc">Travel through time as Link to defeat Ganondorf. One of gaming's greatest adventures.</p>
+                <div class="controls-section">
+                    <h2>Controls</h2>
+                    <div class="controls-grid">
+                        <div class="control-item"><span class="control-label">Move</span><span class="control-key">Arrow Keys / WASD</span></div>
+                        <div class="control-item"><span class="control-label">Jump / A</span><span class="control-key">Z</span></div>
+                        <div class="control-item"><span class="control-label">Attack / B</span><span class="control-key">X</span></div>
+                        <div class="control-item"><span class="control-label">Action / C</span><span class="control-key">C</span></div>
+                        <div class="control-item"><span class="control-label">Start</span><span class="control-key">Enter</span></div>
+                        <div class="control-item"><span class="control-label">Select</span><span class="control-key">Space</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="game-container" id="gameContainer">
+            <div id="game"></div>
+        </div>
+    </div>
+    <script>
+        function loadGameData() {
+            var games = JSON.parse(localStorage.getItem('games')) || [];
+            var game = games.find(function(g) { return g.title === 'Legend of Zelda: OoT'; });
+            if (game) {
+                document.getElementById('coverImg').src = game.screenshot;
+            }
+        }
+        function startGame() {
+            document.getElementById('gameContainer').classList.add('active');
+            EJS_player = '#game';
+            EJS_core = 'n64';
+            EJS_gameName = 'Legend of Zelda: OoT';
+            EJS_color = '#0066cc';
+            EJS_startOnLoaded = true;
+            EJS_pathtodata = 'https://cdn.jsdelivr.net/gh/genizy/emu@master/';
+            EJS_gameUrl = 'https://cdn.jsdelivr.net/gh/bubbls/ugss@ffa46738ce21236742f4a44db08d87160fed6c7d/ocarinaoftime/Legend%20of%20Zelda%2C%20The%20-%20Ocarina%20of%20Time%20(USA).n64';
+            EJS_defaultOptions = {vsync: 'disabled'};
+            var script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/gh/genizy/emu@master/loader.js';
+            document.body.appendChild(script);
+        }
+        loadGameData();
+    </script>
+</body>
+</html>

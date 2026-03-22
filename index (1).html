@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Stash</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #ffffff;
+            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+        
+        .header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: #1e40af;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .admin-btn, .logout-btn {
+            padding: 10px 20px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            color: #0066cc;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .admin-btn:hover, .logout-btn:hover {
+            border-color: #0066cc;
+            background: #f0f7ff;
+        }
+
+        .logout-btn {
+            display: none;
+        }
+        
+        .search-bar {
+            margin-bottom: 30px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .search-bar input {
+            flex: 1;
+            min-width: 250px;
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            color: #333;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: #0066cc;
+            background: #fff;
+        }
+
+        .add-game-btn {
+            padding: 12px 24px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none;
+        }
+
+        .add-game-btn.show {
+            display: block;
+        }
+
+        .add-game-btn:hover {
+            background: #0052a3;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: #f5f5f5;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .filter-btn:hover {
+            border-color: #0066cc;
+            color: #0066cc;
+        }
+        
+        .filter-btn.active {
+            background: #0066cc;
+            border-color: #0066cc;
+            color: #fff;
+        }
+        
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .game-card {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .game-card:hover {
+            border-color: #0066cc;
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 102, 204, 0.12);
+        }
+
+        .game-card.admin-mode {
+            position: relative;
+        }
+
+        .game-card.admin-mode::after {
+            content: "✎ Edit";
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: #0066cc;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .game-screenshot {
+            width: 100%;
+            height: 160px;
+            background: #f5f5f5;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .game-screenshot img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .game-info {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 1;
+        }
+        
+        .game-title {
+            font-weight: 700;
+            font-size: 15px;
+            color: #1e40af;
+            line-height: 1.3;
+        }
+        
+        .game-system {
+            font-size: 12px;
+            color: #0066cc;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+            font-size: 18px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            max-width: 450px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal h2 {
+            margin-bottom: 24px;
+            color: #1e40af;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .modal input, .modal select, .modal textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal input:focus, .modal select:focus, .modal textarea:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+        }
+
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .modal-buttons .submit-btn {
+            background: #0066cc;
+            color: #fff;
+        }
+
+        .modal-buttons .submit-btn:hover {
+            background: #0052a3;
+        }
+
+        .modal-buttons .delete-btn {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .modal-buttons .delete-btn:hover {
+            background: #b91c1c;
+        }
+
+        .modal-buttons .cancel-btn {
+            background: #f5f5f5;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .modal-buttons .cancel-btn:hover {
+            border-color: #ccc;
+        }
+        
+        @media (max-width: 768px) {
+            .games-grid {
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            }
+            
+            .header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Game Stash</h1>
+            <div class="header-buttons">
+                <button class="admin-btn" onclick="openAdminLogin()">Admin</button>
+                <button class="logout-btn" onclick="logoutAdmin()">Logout</button>
+            </div>
+        </div>
+        
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search games...">
+            <button class="add-game-btn" id="addGameBtn" onclick="openAddGameModal()">+ Add Game</button>
+        </div>
+        
+        <div class="filter-buttons" id="filterButtons" style="margin-bottom: 40px;"></div>
+        
+        <div class="games-grid" id="gamesGrid"></div>
+        <div class="no-results" id="noResults" style="display: none;">No games found</div>
+    </div>
+
+    <div class="modal" id="adminLoginModal">
+        <div class="modal-content">
+            <h2>Admin Login</h2>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter password">
+            </div>
+            <div class="modal-buttons">
+                <button class="submit-btn" onclick="loginAdmin()">Login</button>
+                <button class="cancel-btn" onclick="closeAdminLogin()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="gameModal">
+        <div class="modal-content">
+            <h2 id="gameModalTitle">Add Game</h2>
+            <div class="form-group">
+                <label>Game Title</label>
+                <input type="text" id="gameTitle" placeholder="e.g., Super Mario 64">
+            </div>
+            <div class="form-group">
+                <label>System</label>
+                <input type="text" id="gameSystem" placeholder="e.g., N64">
+            </div>
+            <div class="form-group">
+                <label>Screenshot URL</label>
+                <input type="text" id="gameScreenshot" placeholder="https://example.com/image.jpg">
+            </div>
+            <div class="form-group">
+                <label>Game Page URL</label>
+                <input type="text" id="gameUrl" placeholder="game-title.html">
+            </div>
+            <div class="modal-buttons">
+                <button class="submit-btn" onclick="saveGame()">Save</button>
+                <button class="delete-btn" id="deleteGameBtn" style="display: none;" onclick="deleteGame()">Delete</button>
+                <button class="cancel-btn" onclick="closeGameModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let games = JSON.parse(localStorage.getItem('games')) || [
+            { id: 1, title: "Super Mario 64", system: "N64", screenshot: "https://images.mobygames.com/images/screenshots/l/25163-super-mario-64-nintendo-64-screenshot-mario-in-the-castle.jpg", url: "game-super-mario-64.html" },
+            { id: 2, title: "Legend of Zelda: OoT", system: "N64", screenshot: "https://images.mobygames.com/images/screenshots/l/25164-the-legend-of-zelda-ocarina-of-time-nintendo-64-screenshot-entering-the-deku-tree.jpg", url: "game-zelda-oot.html" },
+            { id: 3, title: "Paper Mario", system: "N64", screenshot: "https://images.mobygames.com/images/screenshots/l/30305-paper-mario-nintendo-64-screenshot-battle.jpg", url: "game-paper-mario.html" },
+            { id: 4, title: "NBA Live 2003", system: "PS1", screenshot: "https://images.mobygames.com/images/screenshots/l/110234-nba-live-2003-playstation-screenshot-game-in-progress.jpg", url: "game-nba-live.html" },
+            { id: 5, title: "LEGO Batman 2", system: "NDS", screenshot: "https://images.mobygames.com/images/screenshots/l/164638-lego-batman-2-dc-super-heroes-nintendo-ds-screenshot.jpg", url: "game-lego-batman-2.html" },
+            { id: 6, title: "LEGO Batman 1", system: "NDS", screenshot: "https://images.mobygames.com/images/screenshots/l/107937-lego-batman-the-videogame-nintendo-ds-screenshot.jpg", url: "game-lego-batman-1.html" },
+            { id: 7, title: "LEGO Star Wars", system: "NDS", screenshot: "https://images.mobygames.com/images/screenshots/l/108996-lego-star-wars-the-complete-saga-nintendo-ds-screenshot.jpg", url: "game-lego-star-wars.html" },
+            { id: 8, title: "Super Mario World", system: "SNES", screenshot: "https://images.mobygames.com/images/screenshots/l/103449-super-mario-world-super-nintendo-screenshot.jpg", url: "game-super-mario-world.html" },
+            { id: 9, title: "Sonic 2", system: "Genesis", screenshot: "https://images.mobygames.com/images/screenshots/l/4424-sonic-the-hedgehog-2-genesis-screenshot.jpg", url: "game-sonic-2.html" },
+            { id: 10, title: "Punch-Out!!", system: "NES", screenshot: "https://images.mobygames.com/images/screenshots/l/4434-mike-tyson-s-punch-out-nes-screenshot.jpg", url: "game-punch-out.html" },
+            { id: 11, title: "Super Mario Bros. 3", system: "NES", screenshot: "https://images.mobygames.com/images/screenshots/l/4411-super-mario-bros-3-nes-screenshot.jpg", url: "game-mario-3.html" },
+            { id: 12, title: "Madden NFL 2002", system: "N64", screenshot: "https://images.mobygames.com/images/screenshots/l/107836-madden-nfl-2002-nintendo-64-screenshot.jpg", url: "game-madden-2002.html" },
+            { id: 13, title: "Gran Turismo 2", system: "PS1", screenshot: "https://images.mobygames.com/images/screenshots/l/124433-gran-turismo-2-playstation-screenshot.jpg", url: "game-gran-turismo-2.html" }
+        ];
+
+        const systems = [...new Set(games.map(g => g.system))].sort();
+        let activeFilter = null;
+        let isAdmin = false;
+        let currentEditId = null;
+
+        function saveGames() {
+            localStorage.setItem('games', JSON.stringify(games));
+        }
+
+        function renderGames(filter = null) {
+            const grid = document.getElementById('gamesGrid');
+            const noResults = document.getElementById('noResults');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = games.filter(game => {
+                const matchesSearch = game.title.toLowerCase().includes(search);
+                const matchesFilter = !filter || game.system === filter;
+                return matchesSearch && matchesFilter;
+            });
+
+            grid.innerHTML = '';
+            
+            if (filtered.length === 0) {
+                noResults.style.display = 'block';
+                return;
+            }
+            
+            noResults.style.display = 'none';
+            
+            filtered.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card' + (isAdmin ? ' admin-mode' : '');
+                card.innerHTML = `
+                    <div class="game-screenshot">
+                        <img src="${game.screenshot}" alt="${game.title}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22160%22><rect fill=%22%23f5f5f5%22 width=%22200%22 height=%22160%22/></svg>'">
+                    </div>
+                    <div class="game-info">
+                        <div class="game-title">${game.title}</div>
+                        <div class="game-system">${game.system}</div>
+                    </div>
+                `;
+                card.addEventListener('click', () => {
+                    if (isAdmin) {
+                        editGame(game.id);
+                    } else {
+                        window.location.href = game.url;
+                    }
+                });
+                grid.appendChild(card);
+            });
+        }
+
+        function renderFilters() {
+            const container = document.getElementById('filterButtons');
+            container.innerHTML = '';
+            
+            const allBtn = document.createElement('button');
+            allBtn.className = 'filter-btn active';
+            allBtn.textContent = 'All';
+            allBtn.addEventListener('click', () => {
+                activeFilter = null;
+                updateFilters();
+                renderGames();
+            });
+            container.appendChild(allBtn);
+            
+            systems.forEach(system => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.textContent = system;
+                btn.addEventListener('click', () => {
+                    activeFilter = system;
+                    updateFilters();
+                    renderGames(system);
+                });
+                container.appendChild(btn);
+            });
+        }
+
+        function updateFilters() {
+            const buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                if (activeFilter === null && btn.textContent === 'All') {
+                    btn.classList.add('active');
+                } else if (btn.textContent === activeFilter) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function openAdminLogin() {
+            document.getElementById('adminLoginModal').classList.add('active');
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('adminLoginModal').classList.remove('active');
+            document.getElementById('adminPassword').value = '';
+        }
+
+        function loginAdmin() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'Furman04!') {
+                isAdmin = true;
+                closeAdminLogin();
+                document.querySelector('.admin-btn').style.display = 'none';
+                document.querySelector('.logout-btn').style.display = 'block';
+                document.getElementById('addGameBtn').classList.add('show');
+                renderGames(activeFilter);
+            } else {
+                alert('Incorrect password');
+            }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            document.querySelector('.admin-btn').style.display = 'block';
+            document.querySelector('.logout-btn').style.display = 'none';
+            document.getElementById('addGameBtn').classList.remove('show');
+            renderGames(activeFilter);
+        }
+
+        function openAddGameModal() {
+            currentEditId = null;
+            document.getElementById('gameModalTitle').textContent = 'Add Game';
+            document.getElementById('gameTitle').value = '';
+            document.getElementById('gameSystem').value = '';
+            document.getElementById('gameScreenshot').value = '';
+            document.getElementById('gameUrl').value = '';
+            document.getElementById('deleteGameBtn').style.display = 'none';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function editGame(gameId) {
+            const game = games.find(g => g.id === gameId);
+            if (!game) return;
+
+            currentEditId = gameId;
+            document.getElementById('gameModalTitle').textContent = 'Edit Game';
+            document.getElementById('gameTitle').value = game.title;
+            document.getElementById('gameSystem').value = game.system;
+            document.getElementById('gameScreenshot').value = game.screenshot;
+            document.getElementById('gameUrl').value = game.url;
+            document.getElementById('deleteGameBtn').style.display = 'block';
+            document.getElementById('gameModal').classList.add('active');
+        }
+
+        function saveGame() {
+            const title = document.getElementById('gameTitle').value.trim();
+            const system = document.getElementById('gameSystem').value.trim();
+            const screenshot = document.getElementById('gameScreenshot').value.trim();
+            const url = document.getElementById('gameUrl').value.trim();
+
+            if (!title || !system || !screenshot || !url) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            if (currentEditId) {
+                const game = games.find(g => g.id === currentEditId);
+                if (game) {
+                    game.title = title;
+                    game.system = system;
+                    game.screenshot = screenshot;
+                    game.url = url;
+                }
+            } else {
+                const newId = Math.max(...games.map(g => g.id), 0) + 1;
+                games.push({ id: newId, title, system, screenshot, url });
+            }
+
+            saveGames();
+            closeGameModal();
+            renderFilters();
+            renderGames(activeFilter);
+        }
+
+        function deleteGame() {
+            if (!currentEditId) return;
+            if (confirm('Are you sure you want to delete this game?')) {
+                games = games.filter(g => g.id !== currentEditId);
+                saveGames();
+                closeGameModal();
+                renderFilters();
+                renderGames(activeFilter);
+            }
+        }
+
+        function closeGameModal() {
+            document.getElementById('gameModal').classList.remove('active');
+            currentEditId = null;
+        }
+
+        document.getElementById('searchInput').addEventListener('input', () => {
+            renderGames(activeFilter);
+        });
+
+        renderFilters();
+        renderGames();
+    </script>
+</body>
+</html>
